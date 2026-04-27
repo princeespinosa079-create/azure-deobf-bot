@@ -1,0 +1,18 @@
+FROM node:20-alpine
+
+ENV PNPM_HOME=/usr/local/share/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+WORKDIR /app
+
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY bot/package.json ./bot/package.json
+
+RUN pnpm install --frozen-lockfile --filter @workspace/bot...
+
+COPY bot ./bot
+COPY tsconfig.base.json ./tsconfig.base.json
+
+EXPOSE 3000
+CMD ["pnpm", "--filter", "@workspace/bot", "run", "start"]
